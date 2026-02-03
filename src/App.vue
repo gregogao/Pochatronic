@@ -33,7 +33,6 @@ watch(() => game.rounds, () => saveCurrentGame(), { deep: true })
 onMounted(() => loadAllData())
 
 // --- LÓGICA DE JUEGO ---
-// CAMBIO 2: Dealer en minúsculas
 const dealerByRound = computed(() => {
   return game.rounds.map((_, roundIndex) => {
     const playerIndex = roundIndex % game.numPlayers
@@ -74,7 +73,6 @@ function startGame() {
   let maxCards = game.numPlayers === 3 ? 12 : game.numPlayers === 4 ? 9 : game.numPlayers === 5 ? 7 : 6
   const newRounds = []
   for (let i = 0; i < game.numPlayers; i++) {
-    // CAMBIO 3: Scores inicializados como null (vacíos) en lugar de 0
     newRounds.push({ cards: 1, scores: Array(game.numPlayers).fill(null) })
   }
   for (let i = 2; i < maxCards; i++) {
@@ -218,7 +216,7 @@ function exitGame() {
           <table class="full-width-table">
             <thead>
               <tr>
-                <th colspan="2" class="th-narrow th-sticky-meta">REPARTE</th>
+                <th colspan="2" class="th-sticky-meta">REPARTE</th>
                 <th v-for="(p, pIndex) in game.players" :key="p.id" 
                     class="th-player"
                     :class="{ 'is-hot': hotPlayers.has(pIndex) }">
@@ -280,93 +278,67 @@ function exitGame() {
   --warning: #f39c12; --nav-height: 70px;
 }
 body { margin: 0; background: var(--bg); font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; -webkit-font-smoothing: antialiased; }
+
+/* Evitar scroll horizontal del body y asegurar que el app ocupe todo */
+#app { width: 100vw; overflow-x: hidden; }
 #app.is-playing { padding-bottom: calc(var(--nav-height) + 10px); }
-
-/* CAMBIO 4: Margen 0 arriba si se está jugando */
 #app.is-playing header { display: none; }
-.ranking-title { text-align: center; color: var(--primary); font-size: 1.1rem; margin-top: 10px; }
 
-header h1 { text-align: center; color: var(--primary); font-size: 1.4rem; margin: 15px 0; letter-spacing: -0.5px; }
+header h1 { text-align: center; color: var(--primary); font-size: 1.4rem; margin: 15px 0; }
 
-/* TABLE SCROLL & STICKY LOGIC */
+/* TABLE WRAPPER */
 .table-wrapper { 
   background: white; 
   width: 100%; 
   overflow-x: auto; 
+  overflow-y: hidden;
   -webkit-overflow-scrolling: touch; 
 }
-/* CAMBIO 5: Ajuste máximo a los bordes */
-.full-screen-table {
-  margin-left: 0;
-  margin-right: 0;
-}
+.full-screen-table { margin: 0; padding: 0; }
+
 .full-width-table { 
   width: 100%; 
   border-collapse: separate; 
   border-spacing: 0;
-  min-width: 480px; 
+  table-layout: fixed; /* Ayuda a que los anchos de columna sean respetados */
 }
 
-/* Fijar cabecera REPARTE */
-.th-sticky-meta {
-  position: sticky;
-  left: 0;
-  z-index: 11;
-  background: #3e4f5f !important;
-  width: 84px;
-  border-right: 2px solid #ccc;
-}
-/* Fijar columna Cartas */
-.th-sticky-c {
-  position: sticky;
-  left: 0;
-  z-index: 5;
-  background: #f8f9fa !important;
-  width: 34px;
-  border-right: 1px solid #eee;
-}
-/* Fijar columna Dealer */
-.th-sticky-d {
-  position: sticky;
-  left: 34px;
-  z-index: 5;
-  background: #f1f3f4 !important;
-  width: 50px;
-  border-right: 2px solid #ddd;
-}
+/* --- CORRECCIÓN COLUMNAS STICKY --- */
 
-thead th { position: sticky; top: 0; z-index: 10; }
+/* Anchos definidos para que no haya solapamiento */
+.th-sticky-meta { width: 84px; left: 0; z-index: 20; position: sticky; background: #3e4f5f !important; border-right: 2px solid #ccc; }
+.th-sticky-c { width: 34px; left: 0; z-index: 10; position: sticky; background: #f8f9fa !important; border-right: 1px solid #eee; }
+.th-sticky-d { width: 50px; left: 34px; z-index: 10; position: sticky; background: #f1f3f4 !important; border-right: 2px solid #ddd; }
 
-th { background: var(--primary); color: white; padding: 10px 2px; font-size: 0.65rem; font-weight: 800; }
-.th-player { font-size: 0.75rem; min-width: 65px; }
-th.is-hot { background-color: var(--warning) !important; color: white; }
+/* Jugadores (No sticky) */
+.th-player { width: 75px; min-width: 75px; }
+.td-score { width: 75px; }
 
-td { border-bottom: 1px solid #eee; padding: 8px 0; text-align: center; background: white; }
+/* Asegurar opacidad en el body para que no se "monte" el texto */
+tbody td { background-color: white; }
+
+thead th { position: sticky; top: 0; z-index: 30; background: var(--primary); color: white; padding: 12px 2px; font-size: 0.65rem; font-weight: 800; }
+th.is-hot { background-color: var(--warning) !important; }
+
+td { border-bottom: 1px solid #eee; padding: 10px 0; text-align: center; }
 .td-cards { font-weight: bold; font-size: 0.8rem; }
-.td-dealer { font-size: 0.7rem; color: #666; font-weight: bold; }
+.td-dealer { font-size: 0.7rem; color: #666; font-weight: bold; text-transform: lowercase; }
 
+/* INPUTS */
 input[type=number] { 
-  width: 48px; 
-  height: 38px; 
+  width: 55px; 
+  height: 40px; 
   border: 1px solid #dcdde1; 
   border-radius: 6px; 
   text-align: center; 
   font-size: 1.1rem; 
+  -moz-appearance: textfield;
 }
+input::-webkit-outer-spin-button, input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
 input.is-negative { background: #fee2e2; color: var(--danger); border-color: #fca5a5; font-weight: bold; }
 
-/* RANKING ACTIONS */
-.ranking-actions {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  margin-top: 20px;
-  padding-bottom: 30px;
-}
-.btn-reset { width: 90%; padding: 15px; background: #fff; color: var(--danger); border: 2px solid var(--danger); border-radius: 10px; font-weight: bold; margin-bottom: 12px; }
-.btn-finish-only { background: transparent; border: none; color: #888; text-decoration: underline; font-size: 0.9rem; padding: 10px; }
-
-/* ESTILOS ORIGINALES MANTENIDOS */
+/* RESTO DE ESTILOS */
+.ranking-title { text-align: center; color: var(--primary); font-size: 1.1rem; margin-top: 10px; }
 .setup-container { padding: 20px; text-align: center; max-width: 400px; margin: 0 auto; }
 .grid-buttons { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-top: 20px; }
 .btn-main { padding: 25px; font-size: 1.3rem; background: white; border: 2px solid var(--accent); border-radius: 12px; color: var(--accent); font-weight: bold; }
@@ -388,6 +360,9 @@ input.is-negative { background: #fee2e2; color: var(--danger); border-color: #fc
 .rank-name { font-weight: 700; font-size: 1.1rem; color: var(--primary); }
 .rank-details { font-size: 0.75rem; color: #999; font-weight: 600; text-transform: uppercase; }
 .rank-score { font-size: 1.6rem; font-weight: 800; text-align: right; min-width: 50px; }
+.ranking-actions { display: flex; flex-direction: column; align-items: center; margin-top: 20px; padding-bottom: 30px; }
+.btn-reset { width: 90%; padding: 15px; background: #fff; color: var(--danger); border: 2px solid var(--danger); border-radius: 10px; font-weight: bold; margin-bottom: 12px; }
+.btn-finish-only { background: transparent; border: none; color: #888; text-decoration: underline; font-size: 0.9rem; padding: 10px; }
 .bottom-nav { position: fixed; bottom: 0; left: 0; right: 0; display: flex; background: white; border-top: 1px solid #ddd; height: var(--nav-height); z-index: 9999; }
 .bottom-nav button { flex: 1; border: none; background: none; font-weight: 800; color: #aaa; }
 .bottom-nav button.active { color: var(--accent); background: #f0f9ff; box-shadow: inset 0 4px 0 var(--accent); }
