@@ -131,12 +131,17 @@ const ranking = computed(() => {
 
 function finishAndSave() {
   if (confirm("¿Finalizar y guardar esta partida en el historial?")) {
+    // Generamos la cadena del ranking: "Jugador1, Jugador2..." ordenados por puntos
+    const rankingString = ranking.value.map(p => p.name).join(', ')
+
     const snapshot = {
       date: game.startTime || new Date().toLocaleString(),
       winner: ranking.value[0]?.name || '---',
       winnerScore: ranking.value[0]?.total || 0,
-      players: game.players.map(p => p.name).join(', ')
+      // Guardamos el ranking ordenado en lugar del orden original de entrada
+      players: `Ranking: ${rankingString}` 
     }
+    
     history.value.unshift(snapshot)
     if (history.value.length > 10) history.value.pop()
     localStorage.setItem('pocha_history_list', JSON.stringify(history.value))
