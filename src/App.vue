@@ -33,11 +33,12 @@ watch(() => game.rounds, () => saveCurrentGame(), { deep: true })
 onMounted(() => loadAllData())
 
 // --- LÓGICA DE JUEGO ---
+// CAMBIO 2: Dealer en minúsculas
 const dealerByRound = computed(() => {
   return game.rounds.map((_, roundIndex) => {
     const playerIndex = roundIndex % game.numPlayers
     const name = game.players[playerIndex]?.name
-    return name ? name.slice(0, 3).toUpperCase() : '???'
+    return name ? name.slice(0, 3).toLowerCase() : '???'
   })
 })
 
@@ -73,13 +74,14 @@ function startGame() {
   let maxCards = game.numPlayers === 3 ? 12 : game.numPlayers === 4 ? 9 : game.numPlayers === 5 ? 7 : 6
   const newRounds = []
   for (let i = 0; i < game.numPlayers; i++) {
-    newRounds.push({ cards: 1, scores: Array(game.numPlayers).fill(0) })
+    // CAMBIO 3: Scores inicializados como null (vacíos) en lugar de 0
+    newRounds.push({ cards: 1, scores: Array(game.numPlayers).fill(null) })
   }
   for (let i = 2; i < maxCards; i++) {
-    newRounds.push({ cards: i, scores: Array(game.numPlayers).fill(0) })
+    newRounds.push({ cards: i, scores: Array(game.numPlayers).fill(null) })
   }
   for (let i = 0; i < game.numPlayers; i++) {
-    newRounds.push({ cards: maxCards, scores: Array(game.numPlayers).fill(0) })
+    newRounds.push({ cards: maxCards, scores: Array(game.numPlayers).fill(null) })
   }
   game.rounds = newRounds
   game.startTime = new Date().toLocaleString('es-ES', { day:'2-digit', month:'2-digit', hour:'2-digit', minute:'2-digit' })
@@ -127,7 +129,6 @@ const ranking = computed(() => {
   })
 })
 
-// NUEVAS FUNCIONES DE CIERRE
 function finishAndSave() {
   if (confirm("¿Finalizar y guardar esta partida en el historial?")) {
     const snapshot = {
@@ -161,7 +162,7 @@ function exitGame() {
 
 <template>
   <div id="app" :class="{ 'is-playing': game.phase === 'playing' }">
-    <header v-if="game.phase !== 'playing' || activeTab === 'ranking'">
+    <header v-if="game.phase !== 'playing'">
       <h1>Pochatronic™ ♠️</h1>
     </header>
 
@@ -213,7 +214,7 @@ function exitGame() {
 
     <main v-else-if="game.phase === 'playing'" class="game-container">
       <div v-show="activeTab === 'table'" class="tab-content">
-        <div class="table-wrapper">
+        <div class="table-wrapper full-screen-table">
           <table class="full-width-table">
             <thead>
               <tr>
@@ -232,7 +233,8 @@ function exitGame() {
                 <td class="td-dealer th-sticky-d">{{ dealerByRound[rIndex] }}</td>
                 <td v-for="(score, pIndex) in round.scores" :key="pIndex" class="td-score">
                   <input type="number" v-model.number="round.scores[pIndex]" 
-                         :class="{ 'is-negative': round.scores[pIndex] < 0 }" />
+                         :class="{ 'is-negative': round.scores[pIndex] < 0 }" 
+                         placeholder="" />
                 </td>
               </tr>
             </tbody>
@@ -241,6 +243,7 @@ function exitGame() {
       </div>
 
       <div v-show="activeTab === 'ranking'" class="tab-content ranking-list">
+        <h2 class="ranking-title">🏆 Ranking Actual</h2>
         <div class="ranking-card" v-for="(player, index) in ranking" :key="player.id">
           <div class="rank-pos">{{ index + 1 }}</div>
           <div class="rank-info">
@@ -259,7 +262,7 @@ function exitGame() {
         
         <div class="ranking-actions">
           <button @click="finishAndSave" class="btn-reset">🔄 FINALIZAR Y GUARDAR</button>
-          <button @click="finishWithoutSaving" class="btn-finish-only">🚪 Finalizar sin guardar</button>
+          <button @click="finishWithoutSaving" class="btn-finish-only">❌ Finalizar sin guardar</button>
         </div>
       </div>
 
@@ -278,6 +281,11 @@ function exitGame() {
 }
 body { margin: 0; background: var(--bg); font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; -webkit-font-smoothing: antialiased; }
 #app.is-playing { padding-bottom: calc(var(--nav-height) + 10px); }
+
+/* CAMBIO 4: Margen 0 arriba si se está jugando */
+#app.is-playing header { display: none; }
+.ranking-title { text-align: center; color: var(--primary); font-size: 1.1rem; margin-top: 10px; }
+
 header h1 { text-align: center; color: var(--primary); font-size: 1.4rem; margin: 15px 0; letter-spacing: -0.5px; }
 
 /* TABLE SCROLL & STICKY LOGIC */
@@ -286,6 +294,11 @@ header h1 { text-align: center; color: var(--primary); font-size: 1.4rem; margin
   width: 100%; 
   overflow-x: auto; 
   -webkit-overflow-scrolling: touch; 
+}
+/* CAMBIO 5: Ajuste máximo a los bordes */
+.full-screen-table {
+  margin-left: 0;
+  margin-right: 0;
 }
 .full-width-table { 
   width: 100%; 
