@@ -267,9 +267,9 @@ function exitGame() {
                       'is-negative': round.scores[pIndex] < 0, 
                       'is-placeholder': round.scores[pIndex] === null 
                     }"
-                    @pointerdown="prepareScore(rIndex, pIndex)"
+                    @pointerdown="prepareScore(rIdx, pIdx)"
                   >
-                    <option v-if="round.scores[pIndex] === null" :value="null">-</option>
+                    <option :value="null">—</option>
                     
                     <option v-for="n in getScoreOptionsForRound(round.cards)" :key="n" :value="n">
                       {{ n > 0 ? '+' + n : n }}
@@ -442,6 +442,10 @@ input.is-negative { background: #fee2e2; color: var(--danger); border-color: #fc
   font-weight: bold; 
 }
 
+.select-score option:first-child {
+  color: #ccc;
+  font-weight: normal;
+}
 
 /* Centrar el texto dentro del select (truco para iOS/Android) */
 .select-score {
