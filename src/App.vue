@@ -32,8 +32,6 @@ const loadAllData = () => {
 watch(() => game.rounds, () => saveCurrentGame(), { deep: true })
 onMounted(() => loadAllData())
 
-// --- LÓGICA DE JUEGO ---
-// CAMBIO 2: Dealer en minúsculas
 const dealerByRound = computed(() => {
   return game.rounds.map((_, roundIndex) => {
     const playerIndex = roundIndex % game.numPlayers
@@ -103,10 +101,16 @@ const getScoreOptionsForRound = (numCards) => {
   const options = [];
   
   for (let n = min; n <= max; n += 5) {
-    // Aplicamos tu regla anterior: saltar el 0 y el 5
-    if (n !== 0 && n !== 5) {
-      options.push(n);
+    // Saltamos el 0 y el 5 según tus reglas
+    if (n === 0 || n === 5) continue;
+
+    // JUSTO AQUÍ: Si ya hemos pasado el -5 y el siguiente es el 10,
+    // metemos el valor null (el guion) en medio.
+    if (n === 10) {
+      options.push(null); 
     }
+
+    options.push(n);
   }
   return options;
 };
@@ -268,15 +272,14 @@ function exitGame() {
                     }"
                     @pointerdown="prepareScore(rIdx, pIdx)"
                   >
-                    <option :value="null">—</option>
-                    
                     <option 
                       v-for="n in getScoreOptionsForRound(round.cards)" 
-                      :key="n" 
+                      :key="n === null ? 'null' : n" 
                       :value="n"
                       :class="{ 'opt-ten': n === 10 }"
                     >
-                      {{ n === 10 ? '+10' : (n > 0 ? '+' + n : n) }}
+                      <template v-if="n === null"></template>
+                      <template v-else>{{ n > 0 ? '+' + n : n }}</template>
                     </option>
                   </select>
                 </td>
