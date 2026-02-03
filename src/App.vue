@@ -90,10 +90,9 @@ function startGame() {
 }
 
 function prepareScore(rIndex, pIndex) {
-  // Si la casilla está vacía (null), le ponemos un 10 
-  // justo antes de que se abra el desplegable.
+  // Solo inyectamos el 10 si la casilla está realmente vacía
   if (game.rounds[rIndex].scores[pIndex] === null) {
-    game.rounds[rIndex].scores[pIndex] = 10
+    game.rounds[rIndex].scores[pIndex] = 10;
   }
 }
 
@@ -271,8 +270,13 @@ function exitGame() {
                   >
                     <option :value="null">—</option>
                     
-                    <option v-for="n in getScoreOptionsForRound(round.cards)" :key="n" :value="n">
-                      {{ n > 0 ? '+' + n : n }}
+                    <option 
+                      v-for="n in getScoreOptionsForRound(round.cards)" 
+                      :key="n" 
+                      :value="n"
+                      :class="{ 'opt-ten': n === 10 }"
+                    >
+                      {{ n === 10 ? '+10' : (n > 0 ? '+' + n : n) }}
                     </option>
                   </select>
                 </td>
@@ -383,6 +387,21 @@ header h1 { text-align: center; color: var(--primary); font-size: 1.4rem; margin
   border-right: 2px solid #ddd;
 }
 
+/* Estilo para la opción 10 dentro del menú desplegable */
+.opt-ten {
+  background-color: #d1e9ff !important; /* Azul claro */
+  font-weight: bold;
+  color: #000;
+}
+
+/* En algunos navegadores como Chrome, esto ayuda a resaltar la opción */
+option:checked, option:hover {
+  box-shadow: 0 0 10px 100px #3498db inset;
+}
+
+
+
+
 thead th { position: sticky; top: 0; z-index: 10; }
 
 th { background: var(--primary); color: white; padding: 10px 2px; font-size: 0.65rem; font-weight: 800; }
@@ -442,14 +461,14 @@ input.is-negative { background: #fee2e2; color: var(--danger); border-color: #fc
   font-weight: bold; 
 }
 
-.select-score option:first-child {
-  color: #ccc;
-  font-weight: normal;
+.select-score option[value=""] {
+  font-style: italic;
 }
 
 /* Centrar el texto dentro del select (truco para iOS/Android) */
 .select-score {
   text-align-last: center;
+  transition: all 0.2s;
 }
 
 /* RANKING ACTIONS */
@@ -460,10 +479,10 @@ input.is-negative { background: #fee2e2; color: var(--danger); border-color: #fc
   margin-top: 20px;
   padding-bottom: 30px;
 }
+
+
 .btn-reset { width: 90%; padding: 15px; background: #fff; color: var(--danger); border: 2px solid var(--danger); border-radius: 10px; font-weight: bold; margin-bottom: 12px; }
 .btn-finish-only { background: transparent; border: none; color: #888; text-decoration: underline; font-size: 0.9rem; padding: 10px; }
-
-/* ESTILOS ORIGINALES MANTENIDOS */
 .setup-container { padding: 20px; text-align: center; max-width: 400px; margin: 0 auto; }
 .grid-buttons { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-top: 20px; }
 .btn-main { padding: 25px; font-size: 1.3rem; background: white; border: 2px solid var(--accent); border-radius: 12px; color: var(--accent); font-weight: bold; }
